@@ -7,7 +7,6 @@ double Bisection(double (*f)(int N, double x), double a, double b, int N);
 double PnFunc(int L, double x);
 short Sign(double a);
 
-
 double *XSample (int N) {
   double xi = -1;
   double xf = 1;

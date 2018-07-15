@@ -8,4 +8,4 @@ set term eps
 set output 'DebyeHC.eps'
 replot
 
-unset term
+unset term 

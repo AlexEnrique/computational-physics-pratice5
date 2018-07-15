@@ -11,7 +11,7 @@ int main() {
     Cv = CvQuadrature(T);
     printf("%lf\t%1.5e\n", T, Cv);
 
-    T += dT;
+    T += dT; 
   } while (T <= TMax);
 
   return 0;

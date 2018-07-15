@@ -18,7 +18,6 @@ double CvQuadrature(double T) {
   gsl_integration_fixed_workspace *w;
   gsl_function func;
 
-
   func.function = &Integrand;
   func.params = 0;
   Itype = gsl_integration_fixed_legendre;

@@ -23,7 +23,6 @@ double DBGaussianQuad(int N, double z) {
     for (unsigned int j = 0; j < N; j++) {
       yj = lowerLim + j*deltaXY;
       I += weights[i] * weights[j] * Integrand(xi, yj, z);
-      // printf("I: %lf\n", I); // Exclude at the final
     }
   }
 

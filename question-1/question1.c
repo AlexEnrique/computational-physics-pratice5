@@ -4,10 +4,10 @@
 #include "g_quadrature.h"
 
 int main() {
-  // Teste 
-  int N = 50;
-  double *x = malloc(N * sizeof(*x));
-  x = XSample(N);
+  // Teste
+  double I = CVGaussianQuadrature();
+  printf("I: %lf\n", I);
+
 
   return 0;
 }

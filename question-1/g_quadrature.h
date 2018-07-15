@@ -12,10 +12,10 @@
 #define kB 1.38064852E-23 // m^3.Kg.s^{-2}.K^{-1} (SI)
 
 double Integrand(double x);
-double CVGaussianQuadrature(double (*f)(double x), double T);
+double _CVGaussianQuadrature(double (*f)(double x), double T);
 void RescaleXInterval(double a, double b, double *x);
 void RescaleWInterval(double a, double b, double *w);
-double PlDerivative(double x, void *par);
+double PlDerivative(double x, int N, double dx);
 double Pl(double x, void *par);
 void My_fdf(double x, void *par, double *f, double *df);
 
@@ -30,28 +30,24 @@ double Pl(double x, void *par) {
   return gsl_sf_legendre_Pl(N, x);
 }
 
-double PlDerivative(double x, void *par) {
-  struct my_params * params = (struct my_params *)par;
-  int N = (params->N);
-  double dx = (params->dx);
-
-  if (x == -1 || x+dx >= 1) {
-    return ( (gsl_sf_legendre_Pl(N, x+dx) - gsl_sf_legendre_Pl(N, x))/dx );
-  }
-  if (x == 1 || x-dx <= -1) {
-    return ( (gsl_sf_legendre_Pl(N, x) - gsl_sf_legendre_Pl(N, x-dx))/dx );
-  }
+double PlDerivative(double x, int N, double dx) {
+  // if (x == -1 || x+dx >= 1) {
+  //   return ( (gsl_sf_legendre_Pl(N, x+dx) - gsl_sf_legendre_Pl(N, x))/dx );
+  // }
+  // if (x == 1 || x-dx <= -1) {
+  //   return ( (gsl_sf_legendre_Pl(N, x) - gsl_sf_legendre_Pl(N, x-dx))/dx );
+  // }
   return ( (gsl_sf_legendre_Pl(N, x+dx) - gsl_sf_legendre_Pl(N, x-dx))/(2*dx) );
 }
 
-void My_fdf(double x, void *par, double *f, double *df) {
-  struct my_params * params = (struct my_params *)par;
-  int N = (params->N);
-  double t = gsl_sf_legendre_Pl(N, x);
-
-  *f = t;
-  *df = PlDerivative(x, params);
-}
+// void My_fdf(double x, void *par, double *f, double *df) {
+//   struct my_params * params = (struct my_params *)par;
+//   int N = (params->N);
+//   double t = gsl_sf_legendre_Pl(N, x);
+//
+//   *f = t;
+//   *df = PlDerivative(x, params);
+// }
 
 // I have to count the number of steps of this func and see if it is acceptable
 double *XSample(int N) {
@@ -120,15 +116,37 @@ double *XSample(int N) {
   return x;
 }
 
+double *WSample(int N, double *x) {
+  double *w = malloc(N * sizeof(*w));
+  double dx = 2/(4*N);
+  struct my_params par = {N, dx};
+  for (unsigned int k = 0; k < N; k++) {
+    w[k] = ( 2/(1-pow(x[k],2)) * PlDerivative(x[k], N, dx) );
+    printf("w[k]: %lf \n", ( 2/(1-pow(x[k],2)) * PlDerivative(x[k], N, dx) ));
+  }
 
-// Arrumar os CVGaussianQuadrature
-#define CVGaussianQuadrature _CVGaussianQuadrature(Integrand, 273)
+  return w;
+}
+
+
+#define CVGaussianQuadrature(...) _CVGaussianQuadrature(Integrand, 273)
 double _CVGaussianQuadrature(double (*f)(double x), double T) {
   int N = 50;
   double *x = malloc(N * sizeof(*x));
   x = XSample(N);
 
-  return 0.0;
+  double *w = malloc(N * sizeof(*w));
+  w = WSample(N, x);
+
+  // \sum_k w_k f(x_k)
+  double I = 0;
+  for (unsigned int k = 0; k < N; k++) {
+    I += w[k] * (*f)(x[k]);
+    // printf("I = %lf\n", x[k]);
+  }
+
+
+  return I;
 }
 
 

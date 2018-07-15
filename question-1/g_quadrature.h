@@ -35,6 +35,12 @@ double PlDerivative(double x, void *par) {
   int N = (params->N);
   double dx = (params->dx);
 
+  if (x == -1 || x+dx >= 1) {
+    return ( (gsl_sf_legendre_Pl(N, x+dx) - gsl_sf_legendre_Pl(N, x))/dx );
+  }
+  if (x == 1 || x-dx <= -1) {
+    return ( (gsl_sf_legendre_Pl(N, x) - gsl_sf_legendre_Pl(N, x-dx))/dx );
+  }
   return ( (gsl_sf_legendre_Pl(N, x+dx) - gsl_sf_legendre_Pl(N, x-dx))/(2*dx) );
 }
 
@@ -47,33 +53,32 @@ void My_fdf(double x, void *par, double *f, double *df) {
   *df = PlDerivative(x, params);
 }
 
-// I have to count the number of steps of this func and see if it acceptable
+// I have to count the number of steps of this func and see if it is acceptable
 double *XSample(int N) {
-  const gsl_root_fdfsolver_type *T;
-  gsl_root_fdfsolver *s;
+  const gsl_root_fsolver_type *T;
+  gsl_root_fsolver *s;
   int status, iter = 0, maxiter = 100;
   double xi, xf, dx, _x, Pn, *x;
   unsigned int k = 0; // index of x (xk)
   short *sign = malloc(2 * sizeof(*sign)); // compare the last 2 element's sign
-  double PnBefore;
-  gsl_function_fdf FDF;
+  gsl_function F;
 
   // Variables initializations
   x = malloc(N * sizeof(*x)); // roots of Pn
   xi = -1;
   xf = 1;
-  dx = (xf-xi)/N;
+  dx = (xf-xi)/(10*N);
   sign[0] = (short)(gsl_sf_legendre_Pl(N, xi) > 0);
 
   // GSL solver for root
-  T = gsl_root_fdfsolver_newton;
-  s = gsl_root_fdfsolver_alloc(T);
+  T = gsl_root_fsolver_brent;
+  s = gsl_root_fsolver_alloc(T);
   // Legendre Pol derivative for gsl_root_fdfsolver
   struct my_params params = {N, dx};
-  FDF.f = &Pl;
-  FDF.df = &PlDerivative;
-  FDF.fdf = &My_fdf;
-  FDF.params = &params;
+  F.function = &Pl;
+  // FDF.df = &PlDerivative;
+  // FDF.fdf = &My_fdf;
+  F.params = &params;
 
   while (xi <= xf && k < N) {
     Pn = gsl_sf_legendre_Pl(N, xi);
@@ -88,13 +93,13 @@ double *XSample(int N) {
       if (sign[1] != sign[0]) {
         // There exists a root between xi and xi-dx; find it
         x[k] = xi;
-        gsl_root_fdfsolver_set(s, &FDF, x[k]);
+        gsl_root_fsolver_set(s, &F, x[k]-dx, x[k]);
         do {
           iter++;
-          status = gsl_root_fdfsolver_iterate(s);
+          status = gsl_root_fsolver_iterate(s);
           _x = x[k];
-          x[k] = gsl_root_fdfsolver_root(s);
-          status = gsl_root_test_delta(x[k], _x, 0, 1e-10);
+          x[k] = gsl_root_fsolver_root(s);
+          status = gsl_root_test_delta(x[k], _x, 0, 1e-5);
 
         } while(status == GSL_CONTINUE && iter < maxiter);
         k++;
@@ -111,7 +116,7 @@ double *XSample(int N) {
   }
 
   // Plot the Pn function and see if the roots are alright as a check
-  gsl_root_fdfsolver_free(s);
+  gsl_root_fsolver_free(s);
   return x;
 }
 

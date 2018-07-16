@@ -66,3 +66,41 @@ double EvalIntegralQAGS() {
   gsl_integration_workspace_free(w);
   return result;
 }
+
+
+double Integrand2(double x) {
+  if (x == 0 || fabs(x) <= GSL_DBL_EPSILON) {
+    return (double)(0);
+  }
+  return (pow(x,3)/(exp(x)-1));
+}
+
+double RescIntegrd2(double t) {
+  return ( Integrand2(t/(1-t))/pow(1-t,2) );
+}
+
+double EvalTrapezoidal2(double (*f)(double x), double a, double b) {
+  return (b-a)/2*((*f)(a) + (*f)(b));
+}
+
+double Trapezoidal2(double (*f)(double x), double a, double b, unsigned int N) {
+  double I, t, h;
+  I = 0;
+  h = (b-a)/N;
+
+  for (unsigned int i = 0; i < N; i++) {
+    t = a + i*h;
+    I += EvalTrapezoidal2(*f, t, t+h);
+  }
+}
+
+double EvalIntegralTrapezoidal() {
+  const unsigned int n = 100; // number of max. iterations
+  const double a = 0.000000001, b = .9999999999999999; // interval [a,b] of integration
+  const double epsabs = 1E-5, epsrel = 1E-4; // max. abs. and rel. errors
+  int status; // status of the integration
+  double result; // the result of the integral
+
+  result = Trapezoidal2(RescIntegrd2, a, b, n);
+  return result;
+}

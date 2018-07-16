@@ -8,11 +8,16 @@
 #define PI M_PI
 
 int main () {
-  double I = EvalIntegralRomberg();
-  printf("Integral via Romberg: %lf\n", I);
-  I = EvalIntegralQAGS();
+  double I;
 
-  printf("Integral via adaptive integration with singularities: %lf\n", I);
+  I = EvalIntegralRomberg();
+  printf("Integral via Romberg: %lf\n", I);
+
+  I = EvalIntegralTrapezoidal();
+  printf("Integral via Trapezoidal Method: %1.10lf\n", I);
+
+  I = EvalIntegralQAGS();
+  printf("Integral via adaptive integration with singularities: %1.10lf\n", I);
 
   double sigma = I * pow(KB, 4)/(4*pow(PI,2)*pow(C,2)*pow(HBAR,3));
   printf("\nStefan-Boltzmann constant (using the second value above): %1.5e\n", sigma);

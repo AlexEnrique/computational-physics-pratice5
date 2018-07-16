@@ -8,7 +8,7 @@ int main () {
 
   do {
     I = DBGaussianQuad(N, z);
-    printf("%lf\t%lf\n", z, I);
+    printf("%lf\t%1.5e\n", z, I);
     z -= dz;
   } while (z >= zLower);
 

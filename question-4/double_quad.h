@@ -3,6 +3,8 @@
 
 #define L 10.0 // m
 #define M 1.0 // Kg
+#define G 6.674E-11 // SI units
+#define SIGMA (double)1000/100
 
 double Integrand (double x, double y, double z);
 
@@ -27,7 +29,7 @@ double DBGaussianQuad(int N, double z) {
   }
 
 
-  return I;
+  return G*SIGMA*I*z;
 }
 
 double Integrand (double x, double y, double z) {
